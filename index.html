@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Медицинский консультант</title>
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3176FF',
+                        secondary: '#f5f5f5'
+                    },
+                    borderRadius: {
+                        'none': '0px',
+                        'sm': '4px',
+                        DEFAULT: '8px',
+                        'md': '12px',
+                        'lg': '16px',
+                        'xl': '20px',
+                        '2xl': '24px',
+                        '3xl': '32px',
+                        'full': '9999px',
+                        'button': '8px'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :where([class^="ri-"])::before { content: "\f3c2"; }
+        body {
+            background: linear-gradient(135deg, #87cefa15 0%, #ffffff 100%);
+            font-family: 'Roboto', sans-serif;
+            position: relative;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, #87cefa10 0%, transparent 60%),
+                        radial-gradient(circle at 70% 30%, #87cefa15 0%, transparent 50%);
+            z-index: -1;
+            animation: pulse 15s infinite;
+        }
+        body::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200px;
+            height: 200px;
+            background: url('https://static.readdy.ai/image/3babd1518ecbafc7fa04c22eb6018329/88b6a2a8291d51c6c9bdc8d6d51631ef.jpeg') no-repeat;
+            background-size: contain;
+            z-index: -1;
+            opacity: 0.1;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        textarea:focus, input:focus, button:focus {
+            outline: none;
+        }
+        .custom-checkbox {
+            appearance: none;
+            min-width: 20px;
+            width: 20px;
+            min-height: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            border: 2px solid #d1d5db;
+            border-radius: 4px;
+            position: relative;
+            cursor: pointer;
+        }
+        .custom-checkbox:checked {
+            background-color: #87cefa;
+            border-color: #87cefa;
+        }
+        .custom-checkbox:checked::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 7px;
+            width: 4px;
+            height: 8px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+        .loading-dots {
+            display: inline-flex;
+            align-items: center;
+        }
+        .loading-dots span {
+            width: 8px;
+            height: 8px;
+            margin: 0 2px;
+            background-color: #3176FF;
+            border-radius: 50%;
+            display: inline-block;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .loading-dots span:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+        .loading-dots span:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white/90 backdrop-blur-sm rounded-xl shadow-lg p-8 w-full max-w-2xl">
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">Медицинский консультант</h1>
+            <p class="text-gray-600">Введите ваши симптомы для получения рекомендаций</p>
+        </div>
+        <div class="mb-6">
+            <label for="symptoms" class="block text-sm font-medium text-gray-700 mb-2">Введите ваши симптомы</label>
+            <textarea id="symptoms" class="w-full border border-gray-300 rounded-lg p-4 min-h-[120px] resize-y text-gray-700" placeholder="Опишите ваши симптомы подробно..."></textarea>
+        </div>
+        <button id="consultButton" class="w-full bg-primary text-white py-3 px-4 rounded-button font-medium hover:bg-opacity-90 transition whitespace-nowrap">Получить консультацию</button>
+        <div id="resultContainer" class="mt-6 p-4 bg-gray-50 rounded-lg hidden">
+            <h3 class="font-medium text-gray-800 mb-2">Результат консультации:</h3>
+            <div id="consultationResult" class="text-gray-700"></div>
+        </div>
+        
+        <!-- Модальное окно подтверждения -->
+        <div id="confirmationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+            <div class="bg-white rounded-xl p-6 max-w-lg w-full mx-4">
+                <h2 class="text-lg font-bold text-gray-800 mb-4 text-center">ДАННАЯ ИНФОРМАЦИЯ НОСИТ ИСКЛЮЧИТЕЛЬНО РЕКОМЕНДАТЕЛЬНЫЙ ХАРАКТЕР И НЕ ЯВЛЯЕТСЯ ЗАМЕНОЙ СПЕЦИАЛИСТА</h2>
+                <div class="space-y-4 mb-6">
+                    <div class="flex items-start">
+                        <input type="checkbox" id="checkbox1" class="custom-checkbox mt-1">
+                        <label for="checkbox1" class="ml-3 text-sm text-gray-700">Я понимаю и принимаю, что данный помощник не является заменой специалиста, а также что команда разработчиков данного продукта не несет ответственности за предпринятые вами действия после консультации</label>
+                    </div>
+                    <div class="flex items-start">
+                        <input type="checkbox" id="checkbox2" class="custom-checkbox mt-1">
+                        <label for="checkbox2" class="ml-3 text-sm text-gray-700">Подтверждаю, что несу полную ответственность за свои действия, после консультации и получения результатов</label>
+                    </div>
+                </div>
+                <div id="errorMessage" class="text-red-500 text-sm mb-4 hidden text-center">Подтвердите все пункты для консультации, мы заботимся о вашем здоровье</div>
+                <div class="flex justify-center space-x-4">
+                    <button id="cancelButton" class="py-2 px-6 bg-gray-200 text-gray-700 rounded-button whitespace-nowrap">Отмена</button>
+                    <button id="confirmButton" class="py-2 px-6 bg-primary text-white rounded-button whitespace-nowrap">Подтвердить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const consultButton = document.getElementById('consultButton');
+            const confirmationModal = document.getElementById('confirmationModal');
+            const cancelButton = document.getElementById('cancelButton');
+            const confirmButton = document.getElementById('confirmButton');
+            const checkbox1 = document.getElementById('checkbox1');
+            const checkbox2 = document.getElementById('checkbox2');
+            const errorMessage = document.getElementById('errorMessage');
+            const symptomsInput = document.getElementById('symptoms');
+            const resultContainer = document.getElementById('resultContainer');
+            const consultationResult = document.getElementById('consultationResult');
+
+            // 🔧 ЗАМЕНИТЕ НА ВАШ URL БЭКЕНДА (например: https://medical-bot-123.onrender.com)
+            const BACKEND_URL = 'https://your-render-app.onrender.com';
+
+            consultButton.addEventListener('click', function() {
+                confirmationModal.classList.remove('hidden');
+                errorMessage.classList.add('hidden');
+                checkbox1.checked = false;
+                checkbox2.checked = false;
+            });
+
+            cancelButton.addEventListener('click', function() {
+                confirmationModal.classList.add('hidden');
+            });
+
+            confirmButton.addEventListener('click', async function() {
+                if (!checkbox1.checked || !checkbox2.checked) {
+                    errorMessage.classList.remove('hidden');
+                    return;
+                }
+
+                const symptoms = symptomsInput.value.trim();
+                if (!symptoms) {
+                    consultationResult.textContent = "Пожалуйста, опишите ваши симптомы.";
+                    resultContainer.classList.remove('hidden');
+                    confirmationModal.classList.add('hidden');
+                    return;
+                }
+
+                // Показываем анимацию загрузки
+                consultationResult.innerHTML = `
+                    <div class="loading-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span class="ml-2">ИИ анализирует ваши симптомы...</span>
+                `;
+                resultContainer.classList.remove('hidden');
+                confirmationModal.classList.add('hidden');
+
+                try {
+                    const response = await fetch(`${BACKEND_URL}/api/ask`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text: symptoms })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Сервер не отвечает. Попробуйте позже.');
+                    }
+
+                    const data = await response.json();
+                    consultationResult.textContent = data.reply;
+                    
+                } catch (error) {
+                    consultationResult.innerHTML = `
+                        <div class="text-red-500 flex items-center">
+                            <i class="ri-error-warning-line mr-2"></i>
+                            <span>${error.message}</span>
+                        </div>
+                    `;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
