@@ -1,17 +1,22 @@
 require('dotenv').config();
 const express = require('express');
-// const cors = require('cors');
 const fetch = require('node-fetch');
 const Groq = require("groq-sdk");
+const cors = require('cors');
 
 const app = express();
-// app.use(cors());
+app.use(cors());
 app.use(express.json());
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 app.post('/api/ask', async (req, res) => {
     try {
+        const userMessage = req.body.text;
+        if (!userMessage) {
+            return res.status(400).json({ error: 'Текст запроса отсутствует.' });
+        }
+
         const messages = [
             {
                 role: "system",
@@ -19,7 +24,7 @@ app.post('/api/ask', async (req, res) => {
             },
             {
                 role: "user",
-                content: req.body.text,
+                content: userMessage,
             },
         ];
 
@@ -32,7 +37,8 @@ app.post('/api/ask', async (req, res) => {
         res.json({ reply });
 
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error('Ошибка при обработке запроса:', error);
+        res.status(500).json({ error: 'Произошла ошибка на сервере. Попробуйте позже.' });
     }
 });
 
